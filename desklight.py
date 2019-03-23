@@ -1,10 +1,12 @@
 import time
+import subprocess
 
 import RPi.GPIO as GPIO
-from serial import Serial
+from serial import Serial, SerialException
 
 
 s = Serial(port='/dev/ttyGS0', timeout=1)
+
 buf = []
 
 pins = {
@@ -13,17 +15,28 @@ pins = {
     'blue': 17,
 }
 
+shutdown_pin = 26
+
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 for p in pins.values():
    GPIO.setup(p, GPIO.OUT)
 
+GPIO.setup(shutdown_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 active = False
 
-while True:
-    data = s.read().decode('ascii')
+while GPIO.input(shutdown_pin) == GPIO.HIGH:
+    try:
+        data = s.read().decode('ascii')
+    except SerialException:
+        data = None
+        s = Serial(port='/dev/ttyGS0', timeout=1)
 
-    buf.append(data)
+    if data:
+        buf.append(data)
+
     if data == '\n':
         buf = ''.join(buf).strip()
         if buf.startswith('Free'):
@@ -32,7 +45,7 @@ while True:
         elif buf.startswith('Away'):
             GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.LOW)
-        elif buf.startswith('Busy'):
+        elif buf.startswith('Busy') or buf.startswith('DoNotDisturb'):
             GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.HIGH)
         buf = []
@@ -49,3 +62,5 @@ while True:
             GPIO.output(p, GPIO.LOW)
 
 GPIO.cleanup()
+subprocess.run(['/sbin/shutdown', '-h', 'now'])
+
