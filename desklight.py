@@ -39,15 +39,26 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
 
     if data == '\n':
         buf = ''.join(buf).strip()
-        if buf.startswith('Free'):
+        if buf == 'available':
             GPIO.output(pins['green'], GPIO.HIGH)
             GPIO.output(pins['red'], GPIO.LOW)
-        elif buf.startswith('Away'):
+            print('available')
+        elif buf == 'away':
             GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.LOW)
-        elif buf.startswith('Busy') or buf.startswith('DoNotDisturb'):
+            print('away')
+        elif buf == 'busy':
             GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.HIGH)
+            print('busy')
+        elif buf == 'busy_strobe':
+            GPIO.output(pins['green'], GPIO.LOW)
+            if time.monotonic() % 1 < 0.5:
+                GPIO.output(pins['red'], GPIO.HIGH)
+                print('strobe: lo')
+            else:
+                GPIO.output(pins['red'], GPIO.HIGH)
+                print('strobe: hi')
         buf = []
 
     if data == u'':
