@@ -33,6 +33,9 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
 
     if data:
         buf.append(data)
+    else:
+        for p in pins.values():
+            GPIO.output(p, GPIO.LOW)
 
     if data == '\n':
         buf = ''.join(buf).strip()
@@ -41,7 +44,7 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
             GPIO.output(pins['red'], GPIO.LOW)
         elif buf == 'away':
             GPIO.output(pins['red'], GPIO.LOW)
-            if time.monotonic() % 1 < 0.5:
+            if time.monotonic() % 1 < 0.8:
                 GPIO.output(pins['green'], GPIO.LOW)
             else:
                 GPIO.output(pins['green'], GPIO.HIGH)
@@ -54,9 +57,6 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
                 GPIO.output(pins['red'], GPIO.LOW)
             else:
                 GPIO.output(pins['red'], GPIO.HIGH)
-        else:
-            for p in pins.values():
-                GPIO.output(p, GPIO.LOW)
         buf = []
 
 GPIO.cleanup()
