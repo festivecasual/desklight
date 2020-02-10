@@ -10,9 +10,8 @@ s = Serial(port='/dev/ttyGS0', timeout=1)
 buf = []
 
 pins = {
-    'red': 27,
-    'green': 22,
-    'blue': 17,
+    'red': 23,
+    'green': 25,
 }
 
 shutdown_pin = 26
@@ -24,8 +23,6 @@ for p in pins.values():
    GPIO.setup(p, GPIO.OUT)
 
 GPIO.setup(shutdown_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-active = False
 
 while GPIO.input(shutdown_pin) == GPIO.HIGH:
     try:
@@ -43,8 +40,11 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
             GPIO.output(pins['green'], GPIO.HIGH)
             GPIO.output(pins['red'], GPIO.LOW)
         elif buf == 'away':
-            GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.LOW)
+            if time.monotonic() % 1 < 0.5:
+                GPIO.output(pins['green'], GPIO.LOW)
+            else:
+                GPIO.output(pins['green'], GPIO.HIGH)
         elif buf == 'busy':
             GPIO.output(pins['green'], GPIO.LOW)
             GPIO.output(pins['red'], GPIO.HIGH)
@@ -55,14 +55,6 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
             else:
                 GPIO.output(pins['red'], GPIO.HIGH)
         buf = []
-
-    if data == u'':
-        active = False
-    else:
-        active = True
-
-    if active:
-        GPIO.output(pins['blue'], GPIO.HIGH)
     else:
         for p in pins.values():
             GPIO.output(p, GPIO.LOW)
