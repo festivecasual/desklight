@@ -54,10 +54,10 @@ while GPIO.input(shutdown_pin) == GPIO.HIGH:
                 GPIO.output(pins['red'], GPIO.LOW)
             else:
                 GPIO.output(pins['red'], GPIO.HIGH)
+        else:
+            for p in pins.values():
+                GPIO.output(p, GPIO.LOW)
         buf = []
-    else:
-        for p in pins.values():
-            GPIO.output(p, GPIO.LOW)
 
 GPIO.cleanup()
 subprocess.run(['/sbin/shutdown', '-h', 'now'])
